@@ -51,7 +51,7 @@ find_package(PCL REQUIRED)
 #   FILES
 #   MeshCloud.srv
 #   Service2.srv
-)
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
