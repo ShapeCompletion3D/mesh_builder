@@ -52,7 +52,7 @@ namespace mesh_builder_node
 
     MeshBuilderNode::MeshBuilderNode():
         node_handle("mesh_builder_node"),
-        as_(node_handle, "complete_mesh", boost::bind(&MeshBuilderNode::executeCB, this, _1), false)
+        as_(node_handle, "/get_segmented_meshed_scene", boost::bind(&MeshBuilderNode::executeCB, this, _1), false)
     {
         as_.start();
         pointCloudSubscriber =  node_handle.subscribe("/camera/depth/points/", 10,  &MeshBuilderNode::pointCloudCB, this);
@@ -193,6 +193,13 @@ namespace mesh_builder_node
                  gp3.setSearchMethod (meshTree);
                  gp3.reconstruct (triangles);
 
+                 geometry_msgs::Vector3 *offset = new geometry_msgs::Vector3;
+                 offset->x = centroid.x();
+                 offset->y = centroid.y();
+                 offset->z = centroid.z();
+
+                 result_.offsets.push_back(*offset);
+
                 moveit_msgs::CollisionObject partial_mesh_model;
                 partial_mesh_model.header.frame_id = "camera_depth_optical_frame";
                 partial_mesh_model.id = model_name.str();
@@ -220,9 +227,9 @@ namespace mesh_builder_node
                 for (p = centered_cloud_with_normals->points.begin(); p < centered_cloud_with_normals->points.end(); p++)
                 {
                     geometry_msgs::Point msg_p;
-                    msg_p.x = p->x / 1000.0;
-                    msg_p.y = p->y / 1000.0;
-                    msg_p.z = p->z / 1000.0;
+                    msg_p.x = p->x ;
+                    msg_p.y = p->y ;
+                    msg_p.z = p->z ;
 
                     mesh.vertices.push_back(msg_p);
                 }
