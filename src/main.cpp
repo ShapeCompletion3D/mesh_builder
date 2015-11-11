@@ -17,8 +17,6 @@
 #include <pcl/common/centroid.h>
 #include "geometry_msgs/Vector3.h"
 
-#include "moveit_msgs/PlanningSceneWorld.h"
-#include "moveit_msgs/PlanningScene.h"
 #include "shape_msgs/Mesh.h"
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/mesh_operations.h"
@@ -193,17 +191,14 @@ namespace mesh_builder_node
                  gp3.setSearchMethod (meshTree);
                  gp3.reconstruct (triangles);
 
-                moveit_msgs::CollisionObject partial_mesh_model;
-                partial_mesh_model.header.frame_id = "camera_depth_optical_frame";
-                partial_mesh_model.id = model_name.str();
-                geometry_msgs::Pose pose;
-                pose.orientation.w = 1.0;
-                pose.position.x = centroid.x()/ 1000.0;
-                pose.position.y = centroid.y()/ 1000.0;
-                pose.position.z = centroid.z()/ 1000.0;
+		 //geometry_msgs::Pose pose;
+		 //pose.orientation.w = 1.0;
+		 ///pose.position.x = centroid.x()/ 1000.0;
+		 //pose.position.y = centroid.y()/ 1000.0;
+		 //pose.position.z = centroid.z()/ 1000.0;
 
                 shape_msgs::Mesh mesh;
-                //shapes::Mesh* m = shapes::createMeshFromResource(req.output_filepath + model_name.str() + ".stl");
+                
                 for (int triangle_index = 0; triangle_index < triangles.polygons.size(); triangle_index++)
                 {
                     pcl::Vertices p = triangles.polygons.at(triangle_index);
