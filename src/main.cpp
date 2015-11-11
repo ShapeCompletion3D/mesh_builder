@@ -198,10 +198,6 @@ namespace mesh_builder_node
 
                  result_.offsets.push_back(*offset);
 
-                moveit_msgs::CollisionObject partial_mesh_model;
-                partial_mesh_model.header.frame_id = "camera_depth_optical_frame";
-                partial_mesh_model.id = model_name.str();
-
                 shape_msgs::Mesh mesh;
                 
                 for (int triangle_index = 0; triangle_index < triangles.polygons.size(); triangle_index++)
