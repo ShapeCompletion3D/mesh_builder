@@ -15,7 +15,7 @@ void ClusterExtractor::computeClusters()
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     vg.setInputCloud (sceneCloud);
     //vg.setLeafSize (0.01f, 0.01f, 0.01f);
-    vg.setLeafSize (10, 10, 10);
+    vg.setLeafSize (5, 5, 5);
     vg.filter (*cloud_filtered);
     std::cout << "PointCloud after filtering has: " << cloud_filtered->points.size ()  << " data points." << std::endl; //*
 
@@ -28,7 +28,7 @@ void ClusterExtractor::computeClusters()
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setMaxIterations (100);
     //seg.setDistanceThreshold (0.02);
-    seg.setDistanceThreshold (20);
+    seg.setDistanceThreshold (10);
 
     int i=0, nr_points = (int) cloud_filtered->points.size ();
     while (true)
@@ -55,7 +55,7 @@ void ClusterExtractor::computeClusters()
         ROS_INFO("%d",++i);
         std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
 
-        if (cloud_plane->points.size() < .2*nr_points) {
+        if (cloud_plane->points.size() < .2 * nr_points) {
             break;
         }
 
@@ -75,7 +75,7 @@ void ClusterExtractor::computeClusters()
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
     //ec.setClusterTolerance (0.02); // 2cm
-    ec.setClusterTolerance (20); // 2cm
+    ec.setClusterTolerance (10); // 1cm
     ec.setMinClusterSize (100);
     ec.setMaxClusterSize (25000000);
     ec.setSearchMethod (tree);

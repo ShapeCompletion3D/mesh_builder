@@ -26,6 +26,12 @@
 #include <pcl/surface/gp3.h>
 #include <sys/time.h>
 
+
+//#include <pcl/apps/organized_segmentation_demo.h>
+#include <pcl/segmentation/organized_multi_plane_segmentation.h>
+
+#include <pcl/surface/vtk_smoothing/vtk_mesh_smoothing_laplacian.h>
+
 namespace mesh_builder_node
 {
 
@@ -53,7 +59,8 @@ namespace mesh_builder_node
         as_(node_handle, "/get_segmented_meshed_scene", boost::bind(&MeshBuilderNode::executeCB, this, _1), false)
     {
         as_.start();
-        pointCloudSubscriber =  node_handle.subscribe("/camera/depth/points/", 10,  &MeshBuilderNode::pointCloudCB, this);
+        //pointCloudSubscriber =  node_handle.subscribe("/camera/depth_registered/points/", 10,  &MeshBuilderNode::pointCloudCB, this);
+        pointCloudSubscriber =  node_handle.subscribe("/filtered_pc", 10,  &MeshBuilderNode::pointCloudCB, this);
 
         ROS_INFO("mesh_builder_node ready\n");
     }
@@ -100,6 +107,21 @@ namespace mesh_builder_node
 //         orgMesh.setTriangulationType(pcl::OrganizedFastMesh<pcl::PointXYZRGB>::TRIANGLE_ADAPTIVE_CUT  );
 //         orgMesh.setInputCloud(cloud);
 //         orgMesh.reconstruct(triangles);
+
+        //START NEW STUFF
+
+//        pcl::OrganizedMultiPlaneSegmentation<pcl::PointXYZRGB, pcl::Normal, pcl::Label> mps;
+//        mps.setMinInliers(10000);
+//        mps.setAngularThreshold(0.017453*2.0);//2 degrees
+//        mps.setDistanceThreshold(2.0);//2cm
+//        mps.setInputNormals(normal_cloud);
+//        mps.setInputCloud(cloud);
+//        std::vector<pcl::PlanarRegion<pcl::PointXYZRGB> regions;
+
+
+
+                //END NEW STUFF
+
 
         //extract clusters
         ClusterExtractor *clusterExtractor = new ClusterExtractor();
