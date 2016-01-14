@@ -59,8 +59,10 @@ namespace mesh_builder_node
         as_(node_handle, "/get_segmented_meshed_scene", boost::bind(&MeshBuilderNode::executeCB, this, _1), false)
     {
         as_.start();
+
         //pointCloudSubscriber =  node_handle.subscribe("/camera/depth_registered/points/", 10,  &MeshBuilderNode::pointCloudCB, this);
         pointCloudSubscriber =  node_handle.subscribe("/filtered_pc", 10,  &MeshBuilderNode::pointCloudCB, this);
+
 
         ROS_INFO("mesh_builder_node ready\n");
     }
@@ -252,13 +254,16 @@ namespace mesh_builder_node
 
         }
 
-        as_.setSucceeded(result_);
-
         struct timeval endTime;
         gettimeofday(&endTime, NULL);
         long int endTimeMs = endTime.tv_sec * 1000 + endTime.tv_usec / 1000;
         long int totalTime = endTimeMs - startTimeMS;
+        result_.completion_time = totalTime;
         std::cout << "Total Time in milliseconds is " << totalTime <<  std::endl;
+
+        as_.setSucceeded(result_);
+
+
     }
 
 
