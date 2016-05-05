@@ -4,7 +4,7 @@ project(mesh_builder)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS sensor_msgs roscpp roslib message_generation geometric_shapes actionlib)
+find_package(catkin REQUIRED COMPONENTS sensor_msgs graspit_shape_completion roscpp roslib message_generation geometric_shapes actionlib)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -109,7 +109,7 @@ add_executable(mesh_builder_node src/main.cpp src/cluster_extraction/cluster_ext
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(mesh_builder_node mesh_builder_generate_messages_cpp)
+add_dependencies(mesh_builder_node ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(mesh_builder_node
