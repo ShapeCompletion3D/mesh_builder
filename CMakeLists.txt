@@ -7,8 +7,11 @@ project(mesh_builder)
 find_package(catkin REQUIRED COMPONENTS sensor_msgs graspit_shape_completion roscpp roslib message_generation geometric_shapes actionlib)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(PCL REQUIRED)
+
+#set(CMAKE_CXX_FLAGS "-std=c++0x")
+#add_definitions(-std=c++11)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -94,10 +97,11 @@ include_directories(
 include
 include/cluster_extraction
 ${PCL_INCLUDE_DIRS}
+${BOOST_INCLUDE_DIRS}
 )
 
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
+link_directories(${PCL_LIBRARY_DIRS} ${BOOST_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS} ${BOOST_LIBRARY_DIRS})
 
 ## Declare a cpp library
 # add_library(mesh_builder
@@ -115,6 +119,7 @@ add_dependencies(mesh_builder_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(mesh_builder_node
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
+${BOOST_LIBRARIES}
 )
 
 #############

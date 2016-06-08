@@ -28,45 +28,45 @@ void ClusterExtractor::computeClusters()
     seg.setMethodType (pcl::SAC_RANSAC);
     seg.setMaxIterations (100);
     //seg.setDistanceThreshold (0.02);
-    seg.setDistanceThreshold (10);
+    seg.setDistanceThreshold (2);
 
-    int i=0, nr_points = (int) cloud_filtered->points.size ();
-    while (true)
-    {
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZRGB> ());
-        // Segment the largest planar component from the remaining cloud
-        seg.setInputCloud (cloud_filtered);
-        seg.segment (*inliers, *coefficients);
-        if (inliers->indices.size () == 0)
-        {
-            ROS_WARN("Could not estimate a planar model for the given dataset.");
-            //std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
-            break;
-        }
+//    int i=0, nr_points = (int) cloud_filtered->points.size ();
+//    while (true)
+//    {
+//        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZRGB> ());
+//        // Segment the largest planar component from the remaining cloud
+//        seg.setInputCloud (cloud_filtered);
+//        seg.segment (*inliers, *coefficients);
+//        if (inliers->indices.size () == 0)
+//        {
+//            ROS_WARN("Could not estimate a planar model for the given dataset.");
+//            //std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
+//            break;
+//        }
 
-        // Extract the planar inliers from the input cloud
-        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
-        extract.setInputCloud (cloud_filtered);
-        extract.setIndices (inliers);
-        extract.setNegative (false);
+//        // Extract the planar inliers from the input cloud
+//        pcl::ExtractIndices<pcl::PointXYZRGB> extract;
+//        extract.setInputCloud (cloud_filtered);
+//        extract.setIndices (inliers);
+//        extract.setNegative (false);
 
-        // Get the points associated with the planar surface
-        extract.filter (*cloud_plane);
-        ROS_INFO("%d",++i);
-        std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
+//        // Get the points associated with the planar surface
+//        extract.filter (*cloud_plane);
+//        ROS_INFO("%d",++i);
+//        std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
 
-        if (cloud_plane->points.size() < .2 * nr_points) {
-            break;
-        }
+//        if (cloud_plane->points.size() < .2 * nr_points) {
+//            break;
+//        }
 
-        // Remove the planar inliers, extract the rest
-        extract.setNegative (true);
-        extract.filter (*cloud_f);
-        *cloud_filtered = *cloud_f;
+//        // Remove the planar inliers, extract the rest
+//        extract.setNegative (true);
+//        extract.filter (*cloud_f);
+//        *cloud_filtered = *cloud_f;
 
-        // Add euclidean plane to computer clusters
-        cloudClusters.push_back(cloud_plane);
-    }
+//        // Add euclidean plane to computer clusters
+//        cloudClusters.push_back(cloud_plane);
+//    }
 
     // Creating the KdTree object for the search method of the extraction
     pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
@@ -75,7 +75,7 @@ void ClusterExtractor::computeClusters()
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
     //ec.setClusterTolerance (0.02); // 2cm
-    ec.setClusterTolerance (10); // 1cm
+    ec.setClusterTolerance (20); // 1cm
     ec.setMinClusterSize (100);
     ec.setMaxClusterSize (25000000);
     ec.setSearchMethod (tree);

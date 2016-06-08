@@ -26,6 +26,7 @@
 #include <pcl/surface/gp3.h>
 #include <sys/time.h>
 
+#include <boost/thread.hpp>
 
 //#include <pcl/apps/organized_segmentation_demo.h>
 #include <pcl/segmentation/organized_multi_plane_segmentation.h>
@@ -39,9 +40,11 @@ namespace mesh_builder_node
     {
         private:
 
-            sensor_msgs::PointCloud2 pc_msg;
+            std::vector<sensor_msgs::PointCloud2> pc_msgs;
 
             ros::NodeHandle node_handle;
+            boost::mutex mutex;
+
 
             ros::Subscriber pointCloudSubscriber;
 
@@ -60,8 +63,7 @@ namespace mesh_builder_node
     {
         as_.start();
 
-        //pointCloudSubscriber =  node_handle.subscribe("/camera/depth_registered/points/", 10,  &MeshBuilderNode::pointCloudCB, this);
-        pointCloudSubscriber =  node_handle.subscribe("/filtered_pc", 10,  &MeshBuilderNode::pointCloudCB, this);
+        pointCloudSubscriber =  node_handle.subscribe("/filtered_pc_sc", 10,  &MeshBuilderNode::pointCloudCB, this);
 
 
         ROS_INFO("mesh_builder_node ready\n");
@@ -70,11 +72,19 @@ namespace mesh_builder_node
 
     void MeshBuilderNode::pointCloudCB(const sensor_msgs::PointCloud2::ConstPtr &msg)
     {
-        pc_msg = *msg;
+        boost::lock_guard<boost::mutex> lock(mutex);
+        sensor_msgs::PointCloud2 pc_msg = *msg;
+        pc_msgs.push_back(pc_msg);
+        if (pc_msgs.size() > 5)
+        {
+            pc_msgs.erase(pc_msgs.begin());
+        }
     }
 
     void MeshBuilderNode::executeCB(const graspit_shape_completion::GetSegmentedMeshedSceneGoalConstPtr &goal)
     {
+        boost::lock_guard<boost::mutex> lock(mutex);
+
         ROS_INFO("executing complete mesh callback\n");
 
         graspit_shape_completion::GetSegmentedMeshedSceneResult result_;
@@ -83,21 +93,41 @@ namespace mesh_builder_node
         gettimeofday(&startTime, NULL);
         long int startTimeMS = startTime.tv_sec * 1000 + startTime.tv_usec / 1000;
 
-        //First Get a pointcloud
-        pcl::PCLPointCloud2::Ptr pcl_pc (new pcl::PCLPointCloud2());
-        pcl_conversions::toPCL(pc_msg, *pcl_pc);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr combinedCloud (new pcl::PointCloud<pcl::PointXYZRGB>());
 
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>());
-        pcl::fromPCLPointCloud2(*pcl_pc, *cloud);
-
-        //scale the cloud for GraspIt!
-        pcl::PointCloud<pcl::PointXYZRGB>::iterator p;
-        for (p = cloud->points.begin(); p < cloud->points.end(); p++)
+        for(int i=0; i < pc_msgs.size(); i++)
         {
-            p->x *= 1000;
-            p->y *= 1000;
-            p->z *= 1000;
+            //First Get a pointcloud
+            pcl::PCLPointCloud2::Ptr pcl_pc (new pcl::PCLPointCloud2());
+            pcl_conversions::toPCL(pc_msgs.at(i), *pcl_pc);
+
+
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>());
+            pcl::fromPCLPointCloud2(*pcl_pc, *cloud);
+
+            pcl::PointCloud<pcl::PointXYZRGB>::iterator p;
+            for (p = cloud->points.begin(); p < cloud->points.end(); p++)
+            {
+                p->x *= 1000;
+                p->y *= 1000;
+                p->z *= 1000;
+                combinedCloud->push_back((*p));
+            }
+
         }
+
+
+//        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>());
+//        pcl::fromPCLPointCloud2(*combined_cloud, *cloud);
+
+//        //scale the cloud for GraspIt!
+//        pcl::PointCloud<pcl::PointXYZRGB>::iterator p;
+//        for (p = cloud->points.begin(); p < cloud->points.end(); p++)
+//        {
+//            p->x *= 1000;
+//            p->y *= 1000;
+//            p->z *= 1000;
+//        }
 
         //NEED TO USE THIS, THEN RUN CLUSTER EXTRACTOR,
         //THEN GRAB TRIANGLES WHOSE VERTICES ARE ALL IN SAME CLUSTER
@@ -127,7 +157,7 @@ namespace mesh_builder_node
 
         //extract clusters
         ClusterExtractor *clusterExtractor = new ClusterExtractor();
-        clusterExtractor->setCloud(cloud);
+        clusterExtractor->setCloud(combinedCloud);
         clusterExtractor->computeClusters();
         std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> cloudClusters = clusterExtractor->getCloudClusters();
         delete clusterExtractor;
@@ -156,7 +186,7 @@ namespace mesh_builder_node
                  n.setSearchMethod (normalEstimationTree);
                  n.setKSearch (20);
                  n.compute (*normals);
-                 n.setViewPoint(0,0,0);
+                 n.setViewPoint(-1394,794,864);
 
                  //* normals should not contain the point normals + surface curvatures
 
@@ -183,9 +213,9 @@ namespace mesh_builder_node
                      point->g = 0;
                      point->b = 0;
                      point->a = p->a;
-                     point->normal_x = p->normal_x;
-                     point->normal_y = p->normal_y;
-                     point->normal_z = p->normal_z;
+                     point->normal_x = -p->normal_x;
+                     point->normal_y = -p->normal_y;
+                     point->normal_z = -p->normal_z;
 
                      centered_cloud_with_normals->points.push_back(*point);
                  }
